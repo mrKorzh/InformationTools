@@ -44,9 +44,15 @@ public class SpaceSituationServiceClientImpl implements SpaceSituationServiceCli
                 HttpEntity entity = response.getEntity();
                 if (entity != null) {
                     try (InputStream inputStream = entity.getContent()) {
-                        String vovan = IOUtils.toString(inputStream, "UTF-8");
-                        System.out.println(vovan);
-                        controlServiceClient.sendToControlCenter(vovan);
+                        String detectedObjects = IOUtils.toString(inputStream, "UTF-8");
+                        System.out.println(detectedObjects);
+                        /* detectedObjects = [{radial_distance: 30000,
+                                polar_angle: 2.1,
+                                azimuth_angle: 1.3},
+                                {radial_distance: 40000,
+                                polar_angle: 1.7,
+                                azimuth_angle: 0.6}]*/
+                        controlServiceClient.sendToControlCenter(detectedObjects);
                     }
                 }
             }
