@@ -1,6 +1,5 @@
 package com.springapp.services;
 
-
 import com.springapp.infotool.InfoTool;
 import com.springapp.infotool.dao.InfoToolDaoImpl;
 import com.springapp.services.controlcenter.ControlServiceClient;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/InfoToolsService")
@@ -24,16 +24,16 @@ public class InfoToolsController {
     @Autowired
     private SpaceSituationServiceClient spaceSituationServiceClient;
 
+    @Autowired
+    private ControlServiceClient controlServiceClient;
+
     @RequestMapping(value = "/fromControlCenter")
-    private void sendToSpaceSituation(HttpServletRequest request) {
-        while(true) {
-            spaceSituationServiceClient.sendToSpaceSituationService("qweqwrreerweffwq");
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    private void sendToSpaceSituation(HttpServletRequest request) throws IOException {
+        String json = request.getReader().readLine();
+        System.out.println(json);
+
+        String detectedObjects = spaceSituationServiceClient.getDetectedObjects(json);
+        controlServiceClient.sendToControlCenter(detectedObjects);
     }
 
     @RequestMapping(value = "/test")  //удалить (для тестирования бд)

@@ -4,19 +4,25 @@ import com.springapp.services.controlcenter.ControlServiceClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,39 +30,29 @@ import java.util.List;
 @Component
 public class SpaceSituationServiceClientImpl implements SpaceSituationServiceClient {
 
-    //@Value("${services.spacesituation.url}")
     private String spaceSituationServiceUrl = "http://192.168.1.157";
 
     @Autowired
     private ControlServiceClient controlServiceClient;
 
     @Override
-    public void sendToSpaceSituationService(String json) {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost(spaceSituationServiceUrl + "/situation/getLast/");
+    public String getDetectedObjects(String params) {
+        try {
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpGet request = new HttpGet(spaceSituationServiceUrl + "/info?" + params);
 
-            List<NameValuePair> nameValuePairs = new ArrayList<>();
-            nameValuePairs.add(new BasicNameValuePair("json", json));
+            HttpResponse response = client.execute(request);
+            System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
+            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
-            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, Consts.UTF_8));
-
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    try (InputStream inputStream = entity.getContent()) {
-                        String detectedObjects = IOUtils.toString(inputStream, "UTF-8");
-                        System.out.println(detectedObjects);
-                        /* detectedObjects = [{radial_distance: 30000,
-                                polar_angle: 2.1,
-                                azimuth_angle: 1.3},
-                                {radial_distance: 40000,
-                                polar_angle: 1.7,
-                                azimuth_angle: 0.6}]*/
-                        controlServiceClient.sendToControlCenter(detectedObjects);
-                    }
-                }
+            StringBuffer result = new StringBuffer();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
             }
-        } catch (IOException e) {}
+            return result.toString();
+        }  catch (IOException e) {
+            return e.toString();
+        }
     }
-
 }
