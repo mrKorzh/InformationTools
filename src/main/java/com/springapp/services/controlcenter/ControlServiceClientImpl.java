@@ -30,7 +30,7 @@ public class ControlServiceClientImpl implements ControlServiceClient {
             HttpPost httpPost = new HttpPost(controlCenterServiceUrl + "/ControlCenterService/fromInfoTools");
 
             List<NameValuePair> nameValuePairs = new ArrayList<>();
-            nameValuePairs.add(new BasicNameValuePair("json", json));
+            nameValuePairs.add(new BasicNameValuePair("targets", json));
 
             httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs, Consts.UTF_8));
 
